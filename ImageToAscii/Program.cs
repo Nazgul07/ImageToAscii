@@ -11,36 +11,29 @@ namespace ImageToAscii
 	{
 		static void Main(string[] args)
 		{
-			args = new string[] { @"C:\Users\colto\Pictures\duck.png" };
 			string imagePath;
 			if(args.Length > 0 && File.Exists(imagePath = args[0]))
 			{
 				using (Bitmap image = new Bitmap(imagePath))
 				{
-					ImageConverter converter = new ImageConverter();
-					double height = image.Height;
-					if (height > 30)
-					{
-						height = 30;
-					}
-					double width = image.Width * (height / image.Height);
-					width = width * 2;
+					double height = image.Height > 30 ? 30 : image.Height;
+					double width = image.Width * (height / image.Height) * 2;
 					using (Bitmap resizedImage = ResizeImage(image, (int)Math.Round(width), (int)Math.Round(height)))
 					{
-						WriteImageToASCII(resizedImage);
+						WriteImageToAscii(resizedImage);
 					}
 				}
 			}
 		}
-		
-		public static Bitmap ResizeImage(Image image, int width, int height)
+
+		private static Bitmap ResizeImage(Image image, int width, int height)
 		{
 			var destRect = new Rectangle(0, 0, width, height);
 			var destImage = new Bitmap(width, height);
 
 			destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
 
-			using (var graphics = Graphics.FromImage(destImage))
+			using (Graphics graphics = Graphics.FromImage(destImage))
 			{
 				graphics.CompositingMode = CompositingMode.SourceCopy;
 				graphics.CompositingQuality = CompositingQuality.HighQuality;
@@ -48,7 +41,7 @@ namespace ImageToAscii
 				graphics.SmoothingMode = SmoothingMode.HighQuality;
 				graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-				using (var wrapMode = new ImageAttributes())
+				using (ImageAttributes wrapMode = new ImageAttributes())
 				{
 					wrapMode.SetWrapMode(WrapMode.TileFlipXY);
 					graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
@@ -58,7 +51,7 @@ namespace ImageToAscii
 			return destImage;
 		}
 		
-		public static void WriteImageToASCII(Bitmap img)
+		private static void WriteImageToAscii(Bitmap img)
 		{
 			using(Bitmap lowbit = img.Clone(new Rectangle(0, 0, img.Width, img.Height), PixelFormat.Format8bppIndexed))
 			{
@@ -74,7 +67,7 @@ namespace ImageToAscii
 							col = Color.FromArgb((col.R + col.G + col.B) / 3,
 								(col.R + col.G + col.B) / 3,
 								(col.R + col.G + col.B) / 3);
-							string character = GetCharacterByShade(col, transparent);
+							char character = GetCharacterByShade(col, transparent);
 							Console.Write(character, col.R < 20 ? Color.White : lowbitColor);//black == white
 
 							if (x == img.Width - 1)
@@ -90,68 +83,45 @@ namespace ImageToAscii
 			}
 		}
 
-		private const string BLACK = "@";
-		private const string CHARCOAL = "#";
-		private const string DARKGRAY = "8";
-		private const string MEDIUMGRAY = "&";
-		private const string MEDIUM = "?";
-		private const string MEDIUMLOW = "o";
-		private const string GRAY = ":";
-		private const string SLATEGRAY = "*";
-		private const string LIGHTSLATEGRAY = "-";
-		private const string LIGHTGRAY = ".";
-		private const string WHITE = " ";
+		private const char Black = '@';
+		private const char Charcoal = '#';
+		private const char Darkgray = '8';
+		private const char Mediumgray = '&';
+		private const char Medium = '?';
+		private const char Mediumlow = 'o';
+		private const char Gray = ':';
+		private const char Slategray = '*';
+		private const char Lightslategray = '-';
+		private const char Lightgray = '.';
+		private const char White = ' ';
 
-		private static string GetCharacterByShade(Color col, bool transparent)
+		private static char GetCharacterByShade(Color col, bool transparent)
 		{
-			int redValue = int.Parse(col.R.ToString());
-			string asciival = WHITE;
+			var redValue = int.Parse(col.R.ToString());
+			char asciichar;
 			if (redValue >= 230 || transparent)
-			{
-				asciival = WHITE;
-			}
+				asciichar = White;
 			else if (redValue >= 200)
-			{
-				asciival = LIGHTGRAY;
-			}
+				asciichar = Lightgray;
 			else if (redValue >= 180)
-			{
-				asciival = LIGHTSLATEGRAY;
-			}
+				asciichar = Lightslategray;
 			else if (redValue >= 160)
-			{
-				asciival = SLATEGRAY;
-			}
+				asciichar = Slategray;
 			else if (redValue >= 140)
-			{
-				asciival = GRAY;
-			}
+				asciichar = Gray;
 			else if (redValue >= 120)
-			{
-				asciival = MEDIUMLOW;
-			}
+				asciichar = Mediumlow;
 			else if (redValue >= 100)
-			{
-				asciival = MEDIUM;
-			}
+				asciichar = Medium;
 			else if (redValue >= 70)
-			{
-				asciival = MEDIUMGRAY;
-			}
+				asciichar = Mediumgray;
 			else if (redValue >= 45)
-			{
-				asciival = DARKGRAY;
-			}
+				asciichar = Darkgray;
 			else if (redValue >= 20)
-			{
-				asciival = CHARCOAL;
-			}
+				asciichar = Charcoal;
 			else
-			{
-				asciival = BLACK;
-			}
-
-			return asciival;
+				asciichar = Black;
+			return asciichar;
 		}
 	}
 }
